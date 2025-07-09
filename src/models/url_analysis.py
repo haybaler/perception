@@ -1,9 +1,8 @@
-from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import uuid
 import json
 
-db = SQLAlchemy()
+from .user import db
 
 class UrlAnalysis(db.Model):
     __tablename__ = 'url_analyses'

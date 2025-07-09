@@ -45,8 +45,11 @@ def validate_url(url):
     except:
         return False
 
-@analysis_bp.route('/analyze/url', methods=['POST'])
-@require_api_key
+def get_default_client():
+    """Get the default client for simplified usage"""
+    return Client.find_by_domain('default.local')
+
+@analysis_bp.route('/start', methods=['POST'])
 def analyze_url():
     """Submit a URL for analysis"""
     try:
@@ -74,11 +77,16 @@ def analyze_url():
         if not engines:
             return jsonify({'error': 'At least one valid engine must be specified'}), 400
         
+        # Use default client
+        client = get_default_client()
+        if not client:
+            return jsonify({'error': 'System configuration error'}), 500
+        
         # Check cache if requested
         cached_analysis_id = None
         if use_cache:
             cached_analysis_id = analysis_service.check_cache(
-                request.client.id, url, max_age_hours=24
+                client.id, url, max_age_hours=24
             )
         
         if cached_analysis_id:
@@ -91,7 +99,7 @@ def analyze_url():
         
         # Create new analysis record
         analysis = UrlAnalysis(
-            client_id=request.client.id,
+            client_id=client.id,
             url=url,
             priority=priority
         )
@@ -104,7 +112,7 @@ def analyze_url():
         try:
             # For now, run synchronously but this should be async in production
             analysis_results = analysis_service.analyze_url(
-                analysis.id, url, engines, request.client.id
+                analysis.id, url, engines, client.id
             )
             
             return jsonify({
@@ -219,8 +227,7 @@ def get_analysis_status(analysis_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@analysis_bp.route('/analyze/results/<analysis_id>', methods=['GET'])
-@require_api_key
+@analysis_bp.route('/results/<analysis_id>', methods=['GET'])
 def get_analysis_results(analysis_id):
     """Get detailed results for a specific analysis"""
     try:
@@ -229,9 +236,10 @@ def get_analysis_results(analysis_id):
         if not analysis:
             return jsonify({'error': 'Analysis not found'}), 404
         
-        # Check client ownership
-        if analysis.client_id != request.client.id:
-            return jsonify({'error': 'Access denied'}), 403
+        # Use default client for simplified access
+        client = get_default_client()
+        if not client:
+            return jsonify({'error': 'System configuration error'}), 500
         
         # Check if analysis is completed
         if analysis.status != 'completed':
@@ -411,4 +419,9 @@ def compare_analyses():
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@analysis_bp.route('/test', methods=['GET'])
+def test_route():
+    """Test route to verify blueprint registration"""
+    return jsonify({'message': 'Analysis blueprint is working!'})
 

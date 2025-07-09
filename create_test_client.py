@@ -2,11 +2,13 @@
 
 import sys
 import os
-sys.path.insert(0, '/home/ubuntu/url-scanner-backend')
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from src.models.user import db
 from src.models.client import Client
-from src.main import app
+from src.models.url_analysis import UrlAnalysis
+from src.models.analysis_result import AnalysisResult
+from main import app
 
 def create_test_client():
     with app.app_context():

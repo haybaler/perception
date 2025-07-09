@@ -29,8 +29,8 @@ CORS(app, origins="*")
 
 # Register blueprints
 app.register_blueprint(user_bp, url_prefix='/api')
-app.register_blueprint(client_bp, url_prefix='/api')
-app.register_blueprint(analysis_bp, url_prefix='/api')
+app.register_blueprint(client_bp, url_prefix='/api/clients')
+app.register_blueprint(analysis_bp, url_prefix='/api/analysis')
 
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
@@ -40,9 +40,25 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
+def get_default_client():
+    """Get or create a default client for simplified usage"""
+    client = Client.find_by_domain('default.local')
+    if not client:
+        client = Client(
+            domain='default.local',
+            email='admin@default.local',
+            organization='Default Organization'
+        )
+        client.generate_api_key()
+        db.session.add(client)
+        db.session.commit()
+    return client
+
 # Create all tables
 with app.app_context():
     db.create_all()
+    # Ensure default client exists
+    get_default_client()
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')

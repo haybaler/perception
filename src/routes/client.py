@@ -20,9 +20,12 @@ def require_api_key(f):
     """Decorator to require API key authentication"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        api_key = request.headers.get('Authorization')
-        if api_key and api_key.startswith('Bearer '):
-            api_key = api_key[7:]  # Remove 'Bearer ' prefix
+        api_key = request.headers.get('X-API-Key')
+        if not api_key:
+            # Also check Authorization header for backwards compatibility
+            api_key = request.headers.get('Authorization')
+            if api_key and api_key.startswith('Bearer '):
+                api_key = api_key[7:]  # Remove 'Bearer ' prefix
         
         if not api_key:
             return jsonify({'error': 'API key required'}), 401
@@ -37,7 +40,7 @@ def require_api_key(f):
     
     return decorated_function
 
-@client_bp.route('/clients/register', methods=['POST'])
+@client_bp.route('/register', methods=['POST'])
 def register_client():
     """Register a new client and generate API key"""
     try:
@@ -97,7 +100,7 @@ def register_client():
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-@client_bp.route('/clients/profile', methods=['GET'])
+@client_bp.route('/profile', methods=['GET'])
 @require_api_key
 def get_client_profile():
     """Get client profile information"""
@@ -114,7 +117,7 @@ def get_client_profile():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@client_bp.route('/clients/profile', methods=['PUT'])
+@client_bp.route('/profile', methods=['PUT'])
 @require_api_key
 def update_client_profile():
     """Update client profile information"""
@@ -151,7 +154,7 @@ def update_client_profile():
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-@client_bp.route('/clients/regenerate-key', methods=['POST'])
+@client_bp.route('/regenerate-key', methods=['POST'])
 @require_api_key
 def regenerate_api_key():
     """Regenerate API key for the client"""
@@ -172,7 +175,7 @@ def regenerate_api_key():
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-@client_bp.route('/clients/usage', methods=['GET'])
+@client_bp.route('/usage', methods=['GET'])
 @require_api_key
 def get_client_usage():
     """Get usage statistics for the client"""
@@ -220,7 +223,7 @@ def get_client_usage():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@client_bp.route('/clients/delete', methods=['DELETE'])
+@client_bp.route('/delete', methods=['DELETE'])
 @require_api_key
 def delete_client():
     """Delete client account and all associated data"""
@@ -242,7 +245,7 @@ def delete_client():
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-@client_bp.route('/clients/validate-key', methods=['POST'])
+@client_bp.route('/validate-key', methods=['POST'])
 def validate_api_key():
     """Validate an API key (public endpoint for testing)"""
     try:
@@ -273,7 +276,7 @@ def validate_api_key():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@client_bp.route('/clients/check-domain', methods=['POST'])
+@client_bp.route('/check-domain', methods=['POST'])
 def check_domain_availability():
     """Check if a domain is available for registration"""
     try:
