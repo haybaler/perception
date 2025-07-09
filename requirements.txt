@@ -1,0 +1,39 @@
+# Web Framework
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-CORS==4.0.0
+
+# HTTP Requests
+requests==2.31.0
+
+# HTML Parsing
+beautifulsoup4==4.12.2
+
+# Database
+SQLAlchemy==2.0.23
+
+# Environment Variables
+python-dotenv==1.0.0
+
+# XML Processing (built-in, but listing for clarity)
+# xml.etree.ElementTree - built-in
+
+# URL parsing (built-in)
+# urllib.parse - built-in
+# urllib.robotparser - built-in
+
+# Other built-in modules used:
+# - time
+# - re
+# - json
+# - uuid
+# - datetime
+# - functools
+# - typing
+# - asyncio
+# - concurrent.futures
+# - logging
+# - os
+# - sys
+# - csv
+# - io
